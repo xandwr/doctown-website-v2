@@ -9,8 +9,11 @@
 	let eventSource: EventSource | null = null;
 	let logsContainer: HTMLDivElement;
 
+	// Subscribe to store to get reactive updates
+	$: currentDocpack = $docpackStore.docpacks.find((d) => d.id === docpack.id) || docpack;
+
 	// Auto-scroll to bottom when new logs arrive
-	$: if (logsContainer && docpack.logs.length > 0) {
+	$: if (logsContainer && currentDocpack.logs.length > 0) {
 		setTimeout(() => {
 			logsContainer.scrollTop = logsContainer.scrollHeight;
 		}, 100);
@@ -18,7 +21,7 @@
 
 	onMount(() => {
 		// Only connect to stream if job is not completed or failed
-		if (docpack.status === "queued" || docpack.status === "processing") {
+		if (currentDocpack.status === "queued" || currentDocpack.status === "processing") {
 			connectToStream();
 		}
 	});
@@ -113,8 +116,8 @@
 		});
 
 		eventSource.onerror = () => {
-			if (docpack.status !== "completed" && docpack.status !== "failed") {
-				docpackStore.addLog(docpack.id, "[ERROR] Connection lost");
+			if (currentDocpack.status !== "completed" && currentDocpack.status !== "failed") {
+				docpackStore.addLog(currentDocpack.id, "[ERROR] Connection lost");
 			}
 			eventSource?.close();
 		};
@@ -125,18 +128,18 @@
 	});
 
 	function downloadJsonl() {
-		const content = docpack.jsonlData.join("\n");
+		const content = currentDocpack.jsonlData.join("\n");
 		const blob = new Blob([content], { type: "application/x-ndjson" });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
-		a.download = `${docpack.repoName}-${docpack.id}.jsonl`;
+		a.download = `${currentDocpack.repoName}-${currentDocpack.id}.jsonl`;
 		a.click();
 		URL.revokeObjectURL(url);
 	}
 
 	function copyToClipboard() {
-		const content = docpack.jsonlData.join("\n");
+		const content = currentDocpack.jsonlData.join("\n");
 		navigator.clipboard.writeText(content);
 		alert("JSONL data copied to clipboard!");
 	}
@@ -179,9 +182,9 @@
 			class="bg-white/5 px-6 py-4 border-b border-white/20 flex items-center justify-between"
 		>
 			<div>
-				<h2 class="text-2xl font-bold">{docpack.repoName}</h2>
+				<h2 class="text-2xl font-bold">{currentDocpack.repoName}</h2>
 				<p class="text-gray-400 text-sm">
-					{docpack.repoOwner}/{docpack.repoName} ({docpack.branch})
+					{currentDocpack.repoOwner}/{currentDocpack.repoName} ({currentDocpack.branch})
 				</p>
 			</div>
 			<button
@@ -210,30 +213,30 @@
 			<div class="flex items-center justify-between mb-2">
 				<div class="flex items-center gap-3">
 					<div
-						class="w-3 h-3 rounded-full {docpack.status ===
+						class="w-3 h-3 rounded-full {currentDocpack.status ===
 						'completed'
 							? 'bg-green-500'
-							: docpack.status === 'failed'
+							: currentDocpack.status === 'failed'
 								? 'bg-red-500'
 								: 'bg-blue-500 animate-pulse'}"
 					></div>
 					<span class="text-lg font-semibold capitalize"
-						>{docpack.status}</span
+						>{currentDocpack.status}</span
 					>
 				</div>
-				<span class="text-xl font-bold">{docpack.progress}%</span>
+				<span class="text-xl font-bold">{currentDocpack.progress}%</span>
 			</div>
 
 			<!-- Progress Bar -->
 			<div class="w-full bg-white/10 rounded-full h-2 overflow-hidden">
 				<div
-					class="h-full transition-all duration-500 {docpack.status ===
+					class="h-full transition-all duration-500 {currentDocpack.status ===
 					'completed'
 						? 'bg-green-500'
-						: docpack.status === 'failed'
+						: currentDocpack.status === 'failed'
 							? 'bg-red-500'
 							: 'bg-linear-to-r from-blue-500 to-purple-500'}"
-					style="width: {docpack.progress}%"
+					style="width: {currentDocpack.progress}%"
 				></div>
 			</div>
 		</div>
@@ -241,13 +244,13 @@
 		<!-- Content (Scrollable) -->
 		<div class="flex-1 overflow-y-auto p-6 space-y-4">
 			<!-- Error Message -->
-			{#if docpack.errorMessage}
+			{#if currentDocpack.errorMessage}
 				<div
 					class="bg-red-500/10 border border-red-500/50 rounded-lg p-4"
 				>
 					<p class="text-red-400">
 						<strong>Error:</strong>
-						{docpack.errorMessage}
+						{currentDocpack.errorMessage}
 					</p>
 				</div>
 			{/if}
@@ -261,17 +264,17 @@
 				>
 					<span class="font-semibold">Build Logs</span>
 					<span class="text-sm text-gray-400"
-						>{docpack.logs.length} lines</span
+						>{currentDocpack.logs.length} lines</span
 					>
 				</div>
 				<div
 					bind:this={logsContainer}
 					class="p-4 font-mono text-sm max-h-64 overflow-y-auto"
 				>
-					{#if docpack.logs.length === 0}
+					{#if currentDocpack.logs.length === 0}
 						<p class="text-gray-500 italic">Waiting for logs...</p>
 					{:else}
-						{#each docpack.logs as log}
+						{#each currentDocpack.logs as log}
 							<div
 								class="mb-1 {log.includes('[ERROR]')
 									? 'text-red-400'
@@ -285,7 +288,7 @@
 			</div>
 
 			<!-- JSONL Output -->
-			{#if docpack.jsonlData.length > 0}
+			{#if currentDocpack.jsonlData.length > 0}
 				<div
 					class="bg-white/5 border border-white/20 rounded-lg overflow-hidden"
 				>
@@ -312,16 +315,16 @@
 						class="p-4 font-mono text-xs max-h-64 overflow-y-auto bg-black/30"
 					>
 						<p class="text-gray-400 mb-2">
-							{docpack.jsonlData.length} lines of JSONL data
+							{currentDocpack.jsonlData.length} lines of JSONL data
 						</p>
-						{#each docpack.jsonlData.slice(0, 10) as line}
+						{#each currentDocpack.jsonlData.slice(0, 10) as line}
 							<div class="mb-1 text-gray-300 truncate">
 								{line}
 							</div>
 						{/each}
-						{#if docpack.jsonlData.length > 10}
+						{#if currentDocpack.jsonlData.length > 10}
 							<p class="text-gray-500 italic mt-2">
-								... and {docpack.jsonlData.length - 10} more lines
+								... and {currentDocpack.jsonlData.length - 10} more lines
 								(download to see all)
 							</p>
 						{/if}
