@@ -1,31 +1,31 @@
 <script lang="ts">
-	import type { Docpack } from '$lib/stores/docpacks';
+	import type { Docpack } from "$lib/stores/docpacks";
 
 	export let docpack: Docpack;
 	export let onClick: () => void;
 
 	function getStatusColor(status: string) {
 		switch (status) {
-			case 'completed':
-				return 'bg-green-500/20 text-green-400 border-green-500/50';
-			case 'failed':
-				return 'bg-red-500/20 text-red-400 border-red-500/50';
-			case 'processing':
-				return 'bg-blue-500/20 text-blue-400 border-blue-500/50';
-			case 'queued':
-				return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
+			case "completed":
+				return "bg-green-500/20 text-green-400 border-green-500/50";
+			case "failed":
+				return "bg-red-500/20 text-red-400 border-red-500/50";
+			case "processing":
+				return "bg-blue-500/20 text-blue-400 border-blue-500/50";
+			case "queued":
+				return "bg-yellow-500/20 text-yellow-400 border-yellow-500/50";
 			default:
-				return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
+				return "bg-gray-500/20 text-gray-400 border-gray-500/50";
 		}
 	}
 
 	function formatDate(dateString: string) {
-		return new Date(dateString).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
+		return new Date(dateString).toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
 		});
 	}
 </script>
@@ -38,7 +38,11 @@
 		<h3 class="font-semibold text-lg truncate flex-1 mr-2">
 			{docpack.repoName}
 		</h3>
-		<span class="text-xs px-2 py-1 rounded border {getStatusColor(docpack.status)} capitalize">
+		<span
+			class="text-xs px-2 py-1 rounded border {getStatusColor(
+				docpack.status,
+			)} capitalize"
+		>
 			{docpack.status}
 		</span>
 	</div>
@@ -51,7 +55,7 @@
 		{docpack.branch}
 	</p>
 
-	{#if docpack.status === 'processing' || docpack.status === 'queued'}
+	{#if docpack.status === "processing" || docpack.status === "queued"}
 		<!-- Progress Bar -->
 		<div class="mb-3">
 			<div class="flex items-center justify-between mb-1">
@@ -70,7 +74,7 @@
 		</div>
 	{/if}
 
-	{#if docpack.status === 'completed'}
+	{#if docpack.status === "completed"}
 		<div class="text-sm text-gray-400 mb-2">
 			<span class="text-green-400">✓</span>
 			{docpack.jsonlData.length} files processed
@@ -86,7 +90,8 @@
 	<div class="flex items-center gap-4 text-xs text-gray-400 mt-auto">
 		<span title="Created at">📅 {formatDate(docpack.createdAt)}</span>
 		{#if docpack.completedAt}
-			<span title="Completed at">✓ {formatDate(docpack.completedAt)}</span>
+			<span title="Completed at">✓ {formatDate(docpack.completedAt)}</span
+			>
 		{/if}
 	</div>
 </button>

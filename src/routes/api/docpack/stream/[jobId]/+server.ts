@@ -91,12 +91,15 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 							if (result.output && Array.isArray(result.output) && result.output.length > 0) {
 								console.log(`[Stream ${jobId}] Processing ${result.output.length} output items`);
 
+								let hasDataChunks = false;
+
 								// Send final output if available
 								for (const outputItem of result.output) {
 									console.log(`[Stream ${jobId}] Output item:`, outputItem);
 
 									if (outputItem.data_chunk) {
 										sendEvent('data', { chunk: outputItem.data_chunk });
+										hasDataChunks = true;
 									}
 									if (outputItem.message) {
 										sendEvent('log', { message: outputItem.message });
@@ -106,10 +109,20 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 									}
 								}
 
-								sendEvent('complete', {
-									status: 'completed',
-									message: 'Docpack generation completed successfully'
-								});
+								// Only send completion if we actually processed data chunks
+								if (hasDataChunks) {
+									sendEvent('complete', {
+										status: 'completed',
+										message: 'Docpack generation completed successfully'
+									});
+								} else {
+									// No data chunks found - but job still has output (progress messages, etc)
+									console.warn(`[Stream ${jobId}] Job completed with output but no data_chunk items found`);
+									sendEvent('error', {
+										error: 'No AST data generated',
+										message: 'Job completed but produced no AST output. Check RunPod logs for details.'
+									});
+								}
 							} else {
 								// Output is empty - something went wrong
 								console.error(`[Stream ${jobId}] Job completed but output is empty`);
