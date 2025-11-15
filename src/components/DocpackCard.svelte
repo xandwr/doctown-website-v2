@@ -64,7 +64,7 @@
 			</div>
 			<div class="w-full bg-white/10 rounded-full h-2 overflow-hidden">
 				<div
-					class="bg-gradient-to-r from-blue-500 to-purple-500 h-full transition-all duration-500 {docpack.status ===
+					class="bg-linear-to-r from-blue-500 to-purple-500 h-full transition-all duration-500 {docpack.status ===
 					'queued'
 						? 'animate-pulse'
 						: ''}"
