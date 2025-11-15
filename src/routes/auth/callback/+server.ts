@@ -49,7 +49,7 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		});
 
 		// Redirect to home page
-		return redirect(302, '/');
+		throw redirect(302, '/');
 	} catch (err) {
 		console.error('OAuth callback error:', err);
 		// Don't re-throw if it's already a redirect
