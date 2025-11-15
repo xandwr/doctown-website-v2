@@ -1,7 +1,9 @@
 <script lang="ts">
-    import { goto } from "$app/navigation";
+    import { docpackStore } from "$lib/stores/docpacks";
+    import type { Docpack } from "$lib/stores/docpacks";
 
     export let repo: any;
+    export let onDocpackCreated: () => void = () => {};
 
     let showModal = false;
     let cardElement: HTMLDivElement;
@@ -64,8 +66,23 @@
 
             const data = await response.json();
 
-            // Navigate to the docpack progress page
-            goto(`/docpack/${data.jobId}`);
+            // Add docpack to store
+            const newDocpack: Docpack = {
+                id: data.jobId,
+                repoOwner: repo.owner.login,
+                repoName: repo.name,
+                branch: repo.default_branch || "main",
+                status: "queued",
+                progress: 0,
+                createdAt: new Date().toISOString(),
+                logs: [],
+                jsonlData: [],
+            };
+
+            docpackStore.add(newDocpack);
+
+            // Call callback to switch to docpacks tab
+            onDocpackCreated();
         } catch (error) {
             console.error("Error starting docpack generation:", error);
             alert("Failed to start docpack generation. Please try again.");

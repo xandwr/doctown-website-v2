@@ -1,7 +1,8 @@
 import type { RequestHandler } from './$types';
+import { env } from '$env/dynamic/private';
 
-const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY || '';
-const RUNPOD_ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID || '';
+const RUNPOD_API_KEY = env.RUNPOD_API_KEY || '';
+const RUNPOD_ENDPOINT_ID = env.RUNPOD_ENDPOINT_ID || '';
 
 export const GET: RequestHandler = async ({ params, cookies }) => {
 	const { jobId } = params;
