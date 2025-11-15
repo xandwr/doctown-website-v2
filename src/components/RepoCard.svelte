@@ -1,8 +1,11 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
+
     export let repo: any;
 
     let showModal = false;
     let cardElement: HTMLDivElement;
+    let isGenerating = false;
 
     function formatDate(dateString: string) {
         return new Date(dateString).toLocaleDateString("en-US", {
@@ -32,10 +35,42 @@
         showModal = false;
     }
 
-    function generateDocpack() {
-        // TODO: Implement docpack generation
-        console.log("Generate docpack for:", repo.name);
+    async function generateDocpack() {
+        if (isGenerating) return;
+
+        isGenerating = true;
         showModal = false;
+
+        try {
+            // Call the backend to start the docpack generation
+            const response = await fetch("/api/docpack/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    owner: repo.owner.login,
+                    repo: repo.name,
+                    branch: repo.default_branch || "main",
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(`Failed to start generation: ${error.error}`);
+                isGenerating = false;
+                return;
+            }
+
+            const data = await response.json();
+
+            // Navigate to the docpack progress page
+            goto(`/docpack/${data.jobId}`);
+        } catch (error) {
+            console.error("Error starting docpack generation:", error);
+            alert("Failed to start docpack generation. Please try again.");
+            isGenerating = false;
+        }
     }
 </script>
 
