@@ -4,14 +4,14 @@
 	import Navbar from "$components/Navbar.svelte";
 	import type { LayoutData } from "./$types";
 
-	let { data, children }: { data: LayoutData; children: any } = $props();
+	export let data: LayoutData;
 </script>
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-<Navbar />
+<Navbar {data} />
 <div>
-	{@render children()}
+	<slot />
 </div>
