@@ -4,7 +4,7 @@
     export let data: PageData;
 </script>
 
-<div class="min-h-screen bg-linear-to-b from-gray-900 to-black text-white">
+<div class="min-h-screen text-white">
     <div class="max-w-7xl mx-auto px-4 py-8">
         <div class="mb-8">
             <h1 class="text-4xl font-bold mb-2">Dashboard</h1>
@@ -56,28 +56,8 @@
                     </div>
                     <div>
                         <p class="text-gray-400 text-sm">Member Since</p>
-                        <p class="text-sm">GitHub User</p>
+                        <p class="text-sm">{data.user?.login}</p>
                     </div>
-                </div>
-            </div>
-
-            <!-- Actions Card -->
-            <div
-                class="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20"
-            >
-                <h3 class="text-lg font-semibold mb-4">Quick Actions</h3>
-                <div class="space-y-2">
-                    <a
-                        href="/"
-                        class="block w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-center"
-                    >
-                        Go Home
-                    </a>
-                    <button
-                        class="block w-full px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
-                    >
-                        Settings (Coming Soon)
-                    </button>
                 </div>
             </div>
         </div>
