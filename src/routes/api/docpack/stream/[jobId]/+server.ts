@@ -37,9 +37,9 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 				// Poll RunPod for job status and stream results
 				while (!isComplete && pollCount < maxPolls) {
 					try {
-						// Call RunPod stream endpoint
-						const streamUrl = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}/stream/${jobId}`;
-						const response = await fetch(streamUrl, {
+						// Call RunPod status endpoint (stream endpoint doesn't preserve output after completion)
+						const statusUrl = `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}/status/${jobId}`;
+						const response = await fetch(statusUrl, {
 							headers: {
 								Authorization: `Bearer ${RUNPOD_API_KEY}`
 							}
@@ -60,7 +60,8 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 						const result = await response.json();
 
 						// Log the result for debugging
-						console.log(`[Stream ${jobId}] Status: ${result.status}, Output length: ${result.output?.length || 0}`);
+						console.log(`[Stream ${jobId}] Status: ${result.status}`);
+						console.log(`[Stream ${jobId}] Full result keys:`, Object.keys(result));
 						console.log(`[Stream ${jobId}] Full result:`, JSON.stringify(result, null, 2));
 
 						// Handle different job statuses
