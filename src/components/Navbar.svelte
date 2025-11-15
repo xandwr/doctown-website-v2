@@ -12,7 +12,7 @@
 </script>
 
 <div
-	class="p-2 flex flex-row w-full justify-between items-center border-b border-white/20"
+	class="p-2 flex flex-row w-full justify-between items-center border-b border-white/20 font-mono"
 >
 	<a href="/" class="text-white text-2xl hover:text-neutral-200">doctown</a>
 
