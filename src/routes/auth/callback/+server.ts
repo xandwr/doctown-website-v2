@@ -25,12 +25,15 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		});
 
 		if (!tokenResponse.ok) {
+			const errorText = await tokenResponse.text();
+			console.error('GitHub token exchange failed:', tokenResponse.status, errorText);
 			throw error(500, 'Failed to exchange code for token');
 		}
 
 		const tokenData = await tokenResponse.json();
 
 		if (tokenData.error) {
+			console.error('GitHub OAuth error:', tokenData);
 			throw error(400, tokenData.error_description || tokenData.error);
 		}
 
@@ -46,9 +49,13 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		});
 
 		// Redirect to home page
-		throw redirect(302, '/');
+		return redirect(302, '/');
 	} catch (err) {
 		console.error('OAuth callback error:', err);
+		// Don't re-throw if it's already a redirect
+		if (err instanceof Error && err.message.includes('redirect')) {
+			throw err;
+		}
 		throw error(500, 'Authentication failed');
 	}
 };
