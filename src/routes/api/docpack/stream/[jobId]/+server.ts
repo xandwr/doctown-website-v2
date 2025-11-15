@@ -61,6 +61,7 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 
 						// Log the result for debugging
 						console.log(`[Stream ${jobId}] Status: ${result.status}, Output length: ${result.output?.length || 0}`);
+						console.log(`[Stream ${jobId}] Full result:`, JSON.stringify(result, null, 2));
 
 						// Handle different job statuses
 						if (result.status === 'IN_QUEUE') {
@@ -85,9 +86,15 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 							}
 						} else if (result.status === 'COMPLETED') {
 							// Job completed successfully
+							console.log(`[Stream ${jobId}] Job completed, processing output...`);
+
 							if (result.output && Array.isArray(result.output) && result.output.length > 0) {
+								console.log(`[Stream ${jobId}] Processing ${result.output.length} output items`);
+
 								// Send final output if available
 								for (const outputItem of result.output) {
+									console.log(`[Stream ${jobId}] Output item:`, outputItem);
+
 									if (outputItem.data_chunk) {
 										sendEvent('data', { chunk: outputItem.data_chunk });
 									}
@@ -106,6 +113,7 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 							} else {
 								// Output is empty - something went wrong
 								console.error(`[Stream ${jobId}] Job completed but output is empty`);
+								console.error(`[Stream ${jobId}] Output value:`, result.output);
 								sendEvent('error', {
 									error: 'No output generated',
 									message: 'Job completed but produced no output. Check RunPod logs for details.'
