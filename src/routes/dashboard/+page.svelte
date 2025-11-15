@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { PageData } from "../$types";
     import { onMount } from "svelte";
+    import RepoCard from "$components/RepoCard.svelte";
 
     export let data: PageData;
 
@@ -33,14 +34,6 @@
             loading = false;
         }
     }
-
-    function formatDate(dateString: string) {
-        return new Date(dateString).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-        });
-    }
 </script>
 
 <div class="min-h-screen text-white font-mono py-8">
@@ -59,7 +52,7 @@
 
         <!-- Tabbed Interface -->
         <div
-            class="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 mt-8 overflow-hidden"
+            class="bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 mt-8"
         >
             <!-- Tab Navigation -->
             <div class="flex border-b border-white/20">
@@ -111,70 +104,10 @@
                         </div>
                     {:else}
                         <div
-                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2"
+                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-h-[600px] overflow-y-auto pr-2 p-4"
                         >
                             {#each repositories as repo}
-                                <a
-                                    href={repo.html_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="bg-white/5 hover:bg-white/10 border border-white/20 rounded-lg p-4 transition-all duration-200 hover:scale-105 hover:border-blue-400/50 flex flex-col"
-                                >
-                                    <div class="flex items-start justify-between mb-2">
-                                        <h3
-                                            class="font-semibold text-lg truncate flex-1 mr-2"
-                                        >
-                                            {repo.name}
-                                        </h3>
-                                        {#if repo.private === true}
-                                            <span
-                                                class="text-xs bg-yellow-600/20 text-yellow-400 px-2 py-1 rounded"
-                                            >
-                                                Private
-                                            </span>
-                                        {:else}
-                                            <span
-                                                class="text-xs bg-green-600/20 text-green-400 px-2 py-1 rounded"
-                                            >
-                                                Public
-                                            </span>
-                                        {/if}
-                                    </div>
-
-                                    {#if repo.description}
-                                        <p
-                                            class="text-gray-400 text-sm mb-3 line-clamp-2 flex-1"
-                                        >
-                                            {repo.description}
-                                        </p>
-                                    {:else}
-                                        <p
-                                            class="text-gray-500 text-sm italic mb-3 flex-1"
-                                        >
-                                            No description
-                                        </p>
-                                    {/if}
-
-                                    <div
-                                        class="flex items-center gap-4 text-xs text-gray-400 mt-auto"
-                                    >
-                                        {#if repo.language}
-                                            <span class="flex items-center gap-1">
-                                                <span
-                                                    class="w-3 h-3 rounded-full bg-blue-500"
-                                                ></span>
-                                                {repo.language}
-                                            </span>
-                                        {/if}
-                                        <span>⭐ {repo.stargazers_count}</span>
-                                        <span
-                                            class="ml-auto"
-                                            title={`Updated: ${repo.updated_at}`}
-                                        >
-                                            {formatDate(repo.updated_at)}
-                                        </span>
-                                    </div>
-                                </a>
+                                <RepoCard {repo} />
                             {/each}
                         </div>
                     {/if}
