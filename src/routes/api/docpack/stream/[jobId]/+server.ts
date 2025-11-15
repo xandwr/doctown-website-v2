@@ -87,6 +87,7 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 						} else if (result.status === 'COMPLETED') {
 							// Job completed successfully
 							console.log(`[Stream ${jobId}] Job completed, processing output...`);
+							console.log(`[Stream ${jobId}] Full output array:`, JSON.stringify(result.output, null, 2));
 
 							if (result.output && Array.isArray(result.output) && result.output.length > 0) {
 								console.log(`[Stream ${jobId}] Processing ${result.output.length} output items`);
@@ -95,9 +96,12 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 
 								// Send final output if available
 								for (const outputItem of result.output) {
-									console.log(`[Stream ${jobId}] Output item:`, outputItem);
+									console.log(`[Stream ${jobId}] Output item keys:`, Object.keys(outputItem));
+									console.log(`[Stream ${jobId}] Has data_chunk:`, 'data_chunk' in outputItem);
+									console.log(`[Stream ${jobId}] Output item:`, JSON.stringify(outputItem, null, 2));
 
 									if (outputItem.data_chunk) {
+										console.log(`[Stream ${jobId}] Found data_chunk, sending to frontend`);
 										sendEvent('data', { chunk: outputItem.data_chunk });
 										hasDataChunks = true;
 									}
