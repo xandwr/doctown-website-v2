@@ -75,9 +75,24 @@
 	{/if}
 
 	{#if docpack.status === "completed"}
-		<div class="text-sm text-gray-400 mb-2">
-			<span class="text-green-400">✓</span>
-			{docpack.jsonlData.length} files processed
+		<div class="flex items-center gap-2 mb-2">
+			<span class="text-sm text-gray-400">
+				<span class="text-green-400">✓</span>
+				Docpack ready
+			</span>
+			{#if docpack.docpackUrl}
+				<a
+					href={docpack.docpackUrl}
+					download="{docpack.repoName}.docpack"
+					on:click={(e) => e.stopPropagation()}
+					class="ml-auto px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 rounded transition-colors flex items-center gap-1"
+				>
+					<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+					</svg>
+					Download
+				</a>
+			{/if}
 		</div>
 	{/if}
 

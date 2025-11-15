@@ -92,11 +92,16 @@
 				status: "completed",
 				progress: 100,
 				completedAt: new Date().toISOString(),
+				s3Key: data.s3_key,
+				docpackUrl: data.docpack_url,
 			});
 			docpackStore.addLog(
 				docpack.id,
 				`[SUCCESS] ${data.message || "Docpack generation completed!"}`,
 			);
+			if (data.s3_key) {
+				docpackStore.addLog(docpack.id, `[INFO] S3 Key: ${data.s3_key}`);
+			}
 			eventSource?.close();
 		});
 

@@ -11,8 +11,10 @@ export interface Docpack {
 	createdAt: string;
 	completedAt?: string;
 	logs: string[];
-	jsonlData: string[];
+	jsonlData: string[]; // Deprecated - keeping for backward compatibility
 	errorMessage?: string;
+	s3Key?: string; // R2/S3 key: "docpacks/{owner}/{repo}.docpack"
+	docpackUrl?: string; // Public URL to download the .docpack file
 }
 
 interface DocpackStore {
