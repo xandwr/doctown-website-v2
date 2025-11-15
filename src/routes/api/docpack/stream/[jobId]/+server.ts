@@ -59,6 +59,9 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 
 						const result = await response.json();
 
+						// Log the result for debugging
+						console.log(`[Stream ${jobId}] Status: ${result.status}, Output length: ${result.output?.length || 0}`);
+
 						// Handle different job statuses
 						if (result.status === 'IN_QUEUE') {
 							sendEvent('status', {
@@ -82,22 +85,30 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 							}
 						} else if (result.status === 'COMPLETED') {
 							// Job completed successfully
-							if (result.output) {
+							if (result.output && Array.isArray(result.output) && result.output.length > 0) {
 								// Send final output if available
-								if (Array.isArray(result.output)) {
-									for (const outputItem of result.output) {
-										if (outputItem.data_chunk) {
-											sendEvent('data', { chunk: outputItem.data_chunk });
-										}
-										if (outputItem.message) {
-											sendEvent('log', { message: outputItem.message });
-										}
+								for (const outputItem of result.output) {
+									if (outputItem.data_chunk) {
+										sendEvent('data', { chunk: outputItem.data_chunk });
+									}
+									if (outputItem.message) {
+										sendEvent('log', { message: outputItem.message });
+									}
+									if (outputItem.status) {
+										sendEvent('progress', outputItem);
 									}
 								}
 
 								sendEvent('complete', {
 									status: 'completed',
 									message: 'Docpack generation completed successfully'
+								});
+							} else {
+								// Output is empty - something went wrong
+								console.error(`[Stream ${jobId}] Job completed but output is empty`);
+								sendEvent('error', {
+									error: 'No output generated',
+									message: 'Job completed but produced no output. Check RunPod logs for details.'
 								});
 							}
 							isComplete = true;

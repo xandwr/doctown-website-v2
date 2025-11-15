@@ -27,8 +27,20 @@
 		const streamUrl = `/api/docpack/stream/${docpack.id}`;
 		eventSource = new EventSource(streamUrl);
 
+		function safeJsonParse(eventType: string, data: string) {
+			try {
+				return JSON.parse(data);
+			} catch (e) {
+				console.error(`Failed to parse ${eventType} event data:`, data);
+				console.error('Parse error:', e);
+				return null;
+			}
+		}
+
 		eventSource.addEventListener('status', (e) => {
-			const data = JSON.parse(e.data);
+			const data = safeJsonParse('status', e.data);
+			if (!data) return;
+
 			docpackStore.update(docpack.id, {
 				status: data.status
 			});
@@ -38,7 +50,9 @@
 		});
 
 		eventSource.addEventListener('progress', (e) => {
-			const data = JSON.parse(e.data);
+			const data = safeJsonParse('progress', e.data);
+			if (!data) return;
+
 			if (data.progress !== undefined) {
 				docpackStore.update(docpack.id, {
 					progress: data.progress
@@ -50,21 +64,27 @@
 		});
 
 		eventSource.addEventListener('log', (e) => {
-			const data = JSON.parse(e.data);
+			const data = safeJsonParse('log', e.data);
+			if (!data) return;
+
 			if (data.message) {
 				docpackStore.addLog(docpack.id, data.message);
 			}
 		});
 
 		eventSource.addEventListener('data', (e) => {
-			const data = JSON.parse(e.data);
+			const data = safeJsonParse('data', e.data);
+			if (!data) return;
+
 			if (data.chunk) {
 				docpackStore.addJsonlData(docpack.id, data.chunk);
 			}
 		});
 
 		eventSource.addEventListener('complete', (e) => {
-			const data = JSON.parse(e.data);
+			const data = safeJsonParse('complete', e.data);
+			if (!data) return;
+
 			docpackStore.update(docpack.id, {
 				status: 'completed',
 				progress: 100,
@@ -75,7 +95,9 @@
 		});
 
 		eventSource.addEventListener('error', (e) => {
-			const data = JSON.parse(e.data);
+			const data = safeJsonParse('error', e.data);
+			if (!data) return;
+
 			docpackStore.update(docpack.id, {
 				status: 'failed',
 				errorMessage: data.error || 'Unknown error occurred'
