@@ -47,15 +47,11 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 			path: '/',
 			maxAge: 60 * 60 * 24 * 30 // 30 days
 		});
-
-		// Redirect to home page
-		throw redirect(302, '/');
 	} catch (err) {
 		console.error('OAuth callback error:', err);
-		// Don't re-throw if it's already a redirect
-		if (err instanceof Error && err.message.includes('redirect')) {
-			throw err;
-		}
 		throw error(500, 'Authentication failed');
 	}
+
+	// Redirect to home page after successful authentication
+	throw redirect(302, '/');
 };
