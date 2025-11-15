@@ -1,9 +1,10 @@
 <script lang="ts">
 	import "../app.css";
 	import favicon from "$lib/assets/favicon.svg";
-	import Navbar from "../components/Navbar.svelte";
+	import Navbar from "$components/Navbar.svelte";
+	import type { LayoutData } from "./$types";
 
-	let { children } = $props();
+	let { data, children }: { data: LayoutData; children: any } = $props();
 </script>
 
 <svelte:head>

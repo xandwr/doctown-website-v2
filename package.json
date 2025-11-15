@@ -21,7 +21,10 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
+		"@octokit/app": "^16.1.2",
+		"@octokit/auth-oauth-app": "^9.0.3",
 		"@tailwindcss/vite": "^4.1.17",
+		"cookie": "^1.0.2",
 		"tailwindcss": "^4.1.17"
 	}
 }
