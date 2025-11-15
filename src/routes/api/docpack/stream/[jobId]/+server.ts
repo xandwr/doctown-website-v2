@@ -93,40 +93,52 @@ export const GET: RequestHandler = async ({ params, cookies }) => {
 							if (result.output && Array.isArray(result.output) && result.output.length > 0) {
 								console.log(`[Stream ${jobId}] Processing ${result.output.length} output items`);
 
-								let hasDataChunks = false;
+								let docpackUrl = null;
+								let s3Key = null;
 
-								// Send final output if available
+								// Send all progress/log messages and look for completion data
 								for (const outputItem of result.output) {
-									console.log(`[Stream ${jobId}] Output item keys:`, Object.keys(outputItem));
-									console.log(`[Stream ${jobId}] Has data_chunk:`, 'data_chunk' in outputItem);
 									console.log(`[Stream ${jobId}] Output item:`, JSON.stringify(outputItem, null, 2));
 
-									if (outputItem.data_chunk) {
-										console.log(`[Stream ${jobId}] Found data_chunk, sending to frontend`);
-										sendEvent('data', { chunk: outputItem.data_chunk });
-										hasDataChunks = true;
-									}
+									// Send progress updates
 									if (outputItem.message) {
 										sendEvent('log', { message: outputItem.message });
 									}
-									if (outputItem.status) {
+									if (outputItem.status && outputItem.progress !== undefined) {
 										sendEvent('progress', outputItem);
+									}
+
+									// Check for completion with docpack URL
+									if (outputItem.status === 'completed' && outputItem.docpack_url) {
+										docpackUrl = outputItem.docpack_url;
+										s3Key = outputItem.s3_key;
+										console.log(`[Stream ${jobId}] Found docpack URL: ${docpackUrl}`);
 									}
 								}
 
-								// Only send completion if we actually processed data chunks
-								if (hasDataChunks) {
+								// Send completion event if we have a docpack URL
+								if (docpackUrl) {
 									sendEvent('complete', {
 										status: 'completed',
-										message: 'Docpack generation completed successfully'
+										message: 'Docpack generation completed successfully',
+										docpackUrl: docpackUrl,
+										s3Key: s3Key
 									});
 								} else {
-									// No data chunks found - but job still has output (progress messages, etc)
-									console.warn(`[Stream ${jobId}] Job completed with output but no data_chunk items found`);
-									sendEvent('error', {
-										error: 'No AST data generated',
-										message: 'Job completed but produced no AST output. Check RunPod logs for details.'
-									});
+									// No docpack URL found - check if there was an error
+									const errorItem = result.output.find(item => item.status === 'failed' || item.error);
+									if (errorItem) {
+										sendEvent('error', {
+											error: errorItem.error || 'Job failed',
+											message: errorItem.message || 'Docpack generation failed'
+										});
+									} else {
+										console.warn(`[Stream ${jobId}] Job completed but no docpack URL found`);
+										sendEvent('error', {
+											error: 'No docpack URL returned',
+											message: 'Job completed but did not return a docpack URL. Check RunPod logs.'
+										});
+									}
 								}
 							} else {
 								// Output is empty - something went wrong

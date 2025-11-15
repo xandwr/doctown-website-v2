@@ -75,15 +75,6 @@
 			}
 		});
 
-		eventSource.addEventListener("data", (e: MessageEvent) => {
-			const data = safeJsonParse("data", e.data);
-			if (!data) return;
-
-			if (data.chunk) {
-				docpackStore.addJsonlData(docpack.id, data.chunk);
-			}
-		});
-
 		eventSource.addEventListener("complete", (e: MessageEvent) => {
 			const data = safeJsonParse("complete", e.data);
 			if (!data) return;
@@ -92,15 +83,18 @@
 				status: "completed",
 				progress: 100,
 				completedAt: new Date().toISOString(),
-				s3Key: data.s3_key,
-				docpackUrl: data.docpack_url,
+				s3Key: data.s3Key,
+				docpackUrl: data.docpackUrl,
 			});
 			docpackStore.addLog(
 				docpack.id,
 				`[SUCCESS] ${data.message || "Docpack generation completed!"}`,
 			);
-			if (data.s3_key) {
-				docpackStore.addLog(docpack.id, `[INFO] S3 Key: ${data.s3_key}`);
+			if (data.s3Key) {
+				docpackStore.addLog(docpack.id, `[INFO] S3 Key: ${data.s3Key}`);
+			}
+			if (data.docpackUrl) {
+				docpackStore.addLog(docpack.id, `[INFO] Download: ${data.docpackUrl}`);
 			}
 			eventSource?.close();
 		});
@@ -132,21 +126,10 @@
 		eventSource?.close();
 	});
 
-	function downloadJsonl() {
-		const content = currentDocpack.jsonlData.join("\n");
-		const blob = new Blob([content], { type: "application/x-ndjson" });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement("a");
-		a.href = url;
-		a.download = `${currentDocpack.repoName}-${currentDocpack.id}.jsonl`;
-		a.click();
-		URL.revokeObjectURL(url);
-	}
-
-	function copyToClipboard() {
-		const content = currentDocpack.jsonlData.join("\n");
-		navigator.clipboard.writeText(content);
-		alert("JSONL data copied to clipboard!");
+	function downloadDocpack() {
+		if (currentDocpack.docpackUrl) {
+			window.open(currentDocpack.docpackUrl, '_blank');
+		}
 	}
 
 	function deleteDocpack() {
@@ -292,47 +275,44 @@
 				</div>
 			</div>
 
-			<!-- JSONL Output -->
-			{#if currentDocpack.jsonlData.length > 0}
+			<!-- Download Docpack -->
+			{#if currentDocpack.status === 'completed' && currentDocpack.docpackUrl}
 				<div
-					class="bg-white/5 border border-white/20 rounded-lg overflow-hidden"
+					class="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/50 rounded-lg p-6"
 				>
-					<div
-						class="bg-white/5 px-4 py-2 border-b border-white/20 flex items-center justify-between"
-					>
-						<span class="font-semibold">JSONL Output</span>
-						<div class="flex gap-2">
-							<button
-								on:click={copyToClipboard}
-								class="px-3 py-1 text-sm bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 rounded transition-all"
-							>
-								Copy
-							</button>
-							<button
-								on:click={downloadJsonl}
-								class="px-3 py-1 text-sm bg-green-500/20 hover:bg-green-500/30 border border-green-500/50 rounded transition-all"
-							>
-								Download
-							</button>
-						</div>
-					</div>
-					<div
-						class="p-4 font-mono text-xs max-h-64 overflow-y-auto bg-black/30"
-					>
-						<p class="text-gray-400 mb-2">
-							{currentDocpack.jsonlData.length} lines of JSONL data
-						</p>
-						{#each currentDocpack.jsonlData.slice(0, 10) as line}
-							<div class="mb-1 text-gray-300 truncate">
-								{line}
-							</div>
-						{/each}
-						{#if currentDocpack.jsonlData.length > 10}
-							<p class="text-gray-500 italic mt-2">
-								... and {currentDocpack.jsonlData.length - 10} more lines
-								(download to see all)
+					<div class="flex items-center justify-between">
+						<div>
+							<h3 class="text-xl font-semibold text-green-400 mb-2">
+								✓ Docpack Ready!
+							</h3>
+							<p class="text-gray-300 text-sm">
+								Your documentation package has been generated and is ready to download.
 							</p>
-						{/if}
+							{#if currentDocpack.s3Key}
+								<p class="text-gray-500 text-xs mt-1 font-mono">
+									{currentDocpack.s3Key}
+								</p>
+							{/if}
+						</div>
+						<button
+							on:click={downloadDocpack}
+							class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+						>
+							<svg
+								class="w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+								/>
+							</svg>
+							Download .docpack
+						</button>
 					</div>
 				</div>
 			{/if}
